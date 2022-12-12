@@ -19,6 +19,7 @@ var loopDuration = ppFindFieldMarkerByFieldID(420);
 
 var kfPauseLEFT = ppFindObject("kfPauseLEFT");
 var kfPauseRIGHT = ppFindObject("kfPauseRIGHT");
+var kfStartInterval = ppFindObject("kfStartInterval");
 var kfLoopDurationTrigger = ppFindObject("kfLoopDurationTrigger");
 var kfIntervalTrigger = ppFindObject("kfIntervalTrigger");
 
@@ -28,11 +29,13 @@ txtCountdown.hidden = !countdownOn;
 
 // Trigger animations repeatedly or only once
 if (repeatOn) {
-    kfPauseLEFT.time = 0;
-    kfPauseRIGHT.time = 0;
-    kfLoopDurationTrigger.time = loopDuration.fieldMarker_FieldData;
-    kfIntervalTrigger.time = interval.fieldMarker_FieldData;
+    kfStartInterval.time = 0;
+    kfPauseLEFT.startTime = 0;
+    kfPauseRIGHT.startTime = 0;
+    kfLoopDurationTrigger.time = loopDuration.fieldMarker_FieldDataUnformatted;
+    kfIntervalTrigger.time = interval.fieldMarker_FieldDataUnformatted;
 } else {
+    kfStartInterval.time = 0.08;
     kfPauseLEFT.startTime = 1;
     kfPauseRIGHT.startTime = 1;
 }
@@ -229,7 +232,15 @@ function setTextOffset() {
 }
 
 //Start the correct timelines after succesful script execution
+var firstTime = true;
+
 function startTimelines(typeOfIPP) {
+    if (!firstTime) {
+        ppSendNamedTrigger("restart");
+        ppLog("Restart trigger sent!");
+        return;
+    }
+
     ppTimelineSpeedAndPositionChange("Trigger", 0, 1.0);
     ppTimelineSpeedAndPositionChange("LogoInOut", 0, 1.0);
     ppTimelineSpeedAndPositionChange("PageDuration", 0, 1.0);
@@ -254,7 +265,7 @@ function startTimelines(typeOfIPP) {
     } else {
         ppTimelineSpeedAndPositionChange("Text", 0, 1.0);
     }
-    // ADD ADITIONAL ppTimelineSpeedAndPositionChange TO TRIGGER THE INTERVAL TIMELINE!!!
+    firstTime = false;
 }
 
 function ppOnUpdate() {}

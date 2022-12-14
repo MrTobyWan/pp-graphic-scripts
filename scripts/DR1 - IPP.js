@@ -14,8 +14,8 @@ const defaultChannel = "DR1_sekundaer.png";
 var imageOn = ppFindFieldMarkerByFieldID(200).fieldMarker_FieldData == "true" ? true : false;
 var countdownOn = ppFindFieldMarkerByFieldID(300).fieldMarker_FieldData == "true" ? true : false;
 var repeatOn = ppFindFieldMarkerByFieldID(400).fieldMarker_FieldData == "true" ? true : false;
-var interval = ppFindFieldMarkerByFieldID(410);
-var loopDuration = ppFindFieldMarkerByFieldID(420);
+var interval = Number(ppFindFieldMarkerByFieldID(410).fieldMarker_FieldData);
+var loopDuration = Number(ppFindFieldMarkerByFieldID(420).fieldMarker_FieldData);
 
 var kfPauseLEFT = ppFindObject("kfPauseLEFT");
 var kfPauseRIGHT = ppFindObject("kfPauseRIGHT");
@@ -32,8 +32,8 @@ if (repeatOn) {
     kfStartInterval.time = 0;
     kfPauseLEFT.startTime = 0;
     kfPauseRIGHT.startTime = 0;
-    kfLoopDurationTrigger.time = loopDuration.fieldMarker_FieldDataUnformatted;
-    kfIntervalTrigger.time = interval.fieldMarker_FieldDataUnformatted;
+    kfLoopDurationTrigger.time = loopDuration;
+    kfIntervalTrigger.time = interval;
 } else {
     kfStartInterval.time = 0.08;
     kfPauseLEFT.startTime = 1;
@@ -194,7 +194,7 @@ function ppOnEvent_changeAlignment(s_alignment) {
     } else {
         txtTitle.cell.html = '<p style="text-align:left;">' + txtTitle.cell.string;
         txtTime.cell.html = '<p style="text-align:left;">' + txtTime.cell.string;
-        txtCountdown.cell.html = '<p style="text-align:right;">' + txtCountdown.cell.string;
+        txtCountdown.cell.html = '<p style="text-align:left;">' + txtCountdown.cell.string;
         grpImageToggler.position.x = 0;
         grpLogos.offset.x = 0;
         grpHenvisning.offset.x = 0;
@@ -232,40 +232,44 @@ function setTextOffset() {
 }
 
 //Start the correct timelines after succesful script execution
-var firstTime = true;
-
 function startTimelines(typeOfIPP) {
-    if (!firstTime) {
-        ppSendNamedTrigger("restart");
-        ppLog("Restart trigger sent!");
-        return;
-    }
-
-    ppTimelineSpeedAndPositionChange("Trigger", 0, 1.0);
-    ppTimelineSpeedAndPositionChange("LogoInOut", 0, 1.0);
-    ppTimelineSpeedAndPositionChange("PageDuration", 0, 1.0);
+    ppSendNamedTrigger("Trigger");
+    ppSendNamedTrigger("LogoInOut");
 
     if (type == "Henvisning") {
-        ppTimelineSpeedAndPositionChange("Reference", 0, 1.0);
+        ppSendNamedTrigger("Reference");
         if (channel != "DRDK_sekundaer.png") {
-            ppTimelineSpeedAndPositionChange("CrossPromo", 0, 1.0);
+            ppSendNamedTrigger("CrossPromo");
         }
     } else if (type == "CrossPromoWithImage") {
-        ppTimelineSpeedAndPositionChange("CrossPromo", 0, 1.0);
-        ppTimelineSpeedAndPositionChange("Text", 0, 1.0);
-        ppTimelineSpeedAndPositionChange("Image_IN_OUT", 0, 1.0);
-        ppTimelineSpeedAndPositionChange("Gradient", 0, 1.0);
+        ppSendNamedTrigger("CrossPromo");
+        ppSendNamedTrigger("Text");
+        ppSendNamedTrigger("ImageInOut");
+        ppSendNamedTrigger("Gradient");
     } else if (type == "StandardWithImage") {
-        ppTimelineSpeedAndPositionChange("Text", 0, 1.0);
-        ppTimelineSpeedAndPositionChange("Image_IN_OUT", 0, 1.0);
-        ppTimelineSpeedAndPositionChange("Gradient", 0, 1.0);
+        ppSendNamedTrigger("Text");
+        ppSendNamedTrigger("ImageInOut");
+        ppSendNamedTrigger("Gradient");
     } else if (type == "CrossPromo") {
-        ppTimelineSpeedAndPositionChange("CrossPromo", 0, 1.0);
-        ppTimelineSpeedAndPositionChange("Text", 0, 1.0);
+        ppSendNamedTrigger("CrossPromo");
+        ppSendNamedTrigger("Text");
     } else {
-        ppTimelineSpeedAndPositionChange("Text", 0, 1.0);
+        ppSendNamedTrigger("Text");
     }
-    firstTime = false;
+}
+
+// Only run the full set up script once and then just restart timelines afterwards
+var firstTime = true;
+
+function ppOnEvent_Restart() {
+    if (firstTime) {
+        ppSendNamedTrigger("PLAY");
+        firstTime = false;
+    } else {
+        startTimelines(type);
+        ppSendNamedTrigger("restartDuration");
+    }
+    ppLog("New animation triggered");
 }
 
 function ppOnUpdate() {}

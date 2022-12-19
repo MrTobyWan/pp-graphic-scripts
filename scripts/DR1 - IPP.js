@@ -27,6 +27,21 @@ var kfIntervalTrigger = ppFindObject("kfIntervalTrigger");
 txtTime.hidden = countdownOn;
 txtCountdown.hidden = !countdownOn;
 
+// Get the difference between current time and target time to format clock correctly
+const dayInMilliseconds = 86400000;
+const targetDateTime = new Date(txtCountdown.clockSourceInformation.targetDate);
+
+function formatClock() {
+    var currentDateTime = new Date();
+    var dateDifference = targetDateTime - currentDateTime;
+
+    if (dateDifference < dayInMilliseconds) {
+        txtCountdown.clockSourceInformation.format = "*HH:mm:ss";
+    } else if (dateDifference >= dayInMilliseconds && dateDifference < dayInMilliseconds * 2) {
+        txtCountdown.clockSourceInformation.format = "*D dag HH:mm:ss";
+    } else txtCountdown.clockSourceInformation.format = "*D dage HH:mm:ss";
+}
+
 // Trigger animations repeatedly or only once
 if (repeatOn) {
     kfStartInterval.time = 0;
@@ -233,6 +248,8 @@ function setTextOffset() {
 
 //Start the correct timelines after succesful script execution
 function startTimelines(typeOfIPP) {
+    if (countdownOn) formatClock();
+
     ppSendNamedTrigger("Trigger");
     ppSendNamedTrigger("LogoInOut");
 
